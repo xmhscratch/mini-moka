@@ -427,7 +427,8 @@ where
     /// Like the `invalidate` method, this method does not clear the historic
     /// popularity estimator of keys so that it retains the client activities of
     /// trying to retrieve an item.
-
+    // -----------------------------------------------------------------------
+    // (The followings are not doc comments)
     // We need this #[allow(...)] to avoid a false Clippy warning about needless
     // collect to create keys_to_invalidate.
     // clippy 0.1.52 (9a1dfd2dc5c 2021-04-30) in Rust 1.52.0-beta.7
