@@ -8,7 +8,7 @@ type DashMapRef<'a, K, V> =
 
 pub struct EntryRef<'a, K, V>(DashMapRef<'a, K, V>);
 
-unsafe impl<'a, K, V> Sync for EntryRef<'a, K, V>
+unsafe impl<K, V> Sync for EntryRef<'_, K, V>
 where
     K: Eq + Hash + Send + Sync,
     V: Send + Sync,
@@ -36,7 +36,7 @@ where
     }
 }
 
-impl<'a, K, V> std::ops::Deref for EntryRef<'a, K, V>
+impl<K, V> std::ops::Deref for EntryRef<'_, K, V>
 where
     K: Eq + Hash,
 {
