@@ -219,6 +219,10 @@ where
     }
 }
 
+// Clippy beta 0.1.83 (f41c7ed9889 2024-10-31) warns about unused lifetimes on 'a.
+// This seems a false positive. The lifetimes are used in the trait bounds.
+// https://rust-lang.github.io/rust-clippy/master/index.html#extra_unused_lifetimes
+#[allow(clippy::extra_unused_lifetimes)]
 impl<'a, K, V, S> BaseCache<K, V, S>
 where
     K: 'a + Eq + Hash,
@@ -620,6 +624,10 @@ impl<K, V, S> Inner<K, V, S> {
     }
 }
 
+// Clippy beta 0.1.83 (f41c7ed9889 2024-10-31) warns about unused lifetimes on 'a.
+// This seems a false positive. The lifetimes are used in the trait bounds.
+// https://rust-lang.github.io/rust-clippy/master/index.html#extra_unused_lifetimes
+#[allow(clippy::extra_unused_lifetimes)]
 impl<'a, K, V, S> Inner<K, V, S>
 where
     K: 'a + Eq + Hash,

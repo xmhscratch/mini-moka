@@ -39,7 +39,11 @@ where
     }
 }
 
-unsafe impl<'a, 'i, K, V, S> Send for Iter<'i, K, V, S>
+// Clippy beta 0.1.83 (f41c7ed9889 2024-10-31) warns about unused lifetimes on 'a.
+// This seems a false positive. The lifetimes are used in the trait bounds.
+// https://rust-lang.github.io/rust-clippy/master/index.html#extra_unused_lifetimes
+#[allow(clippy::extra_unused_lifetimes)]
+unsafe impl<'a, K, V, S> Send for Iter<'_, K, V, S>
 where
     K: 'a + Eq + Hash + Send,
     V: 'a + Send,
@@ -47,7 +51,11 @@ where
 {
 }
 
-unsafe impl<'a, 'i, K, V, S> Sync for Iter<'i, K, V, S>
+// Clippy beta 0.1.83 (f41c7ed9889 2024-10-31) warns about unused lifetimes on 'a.
+// This seems a false positive. The lifetimes are used in the trait bounds.
+// https://rust-lang.github.io/rust-clippy/master/index.html#extra_unused_lifetimes
+#[allow(clippy::extra_unused_lifetimes)]
+unsafe impl<'a, K, V, S> Sync for Iter<'_, K, V, S>
 where
     K: 'a + Eq + Hash + Sync,
     V: 'a + Sync,
