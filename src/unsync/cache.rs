@@ -425,8 +425,7 @@ where
             crate::unsync::deques::Deques::unlink_wo(&mut self.deques.write_order, &mut entry);
             self.saturating_sub_from_total_weight(weight as u64);
             Some(entry.value)
-        }
-        else {
+        } else {
             None
         }
     }
