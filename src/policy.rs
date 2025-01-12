@@ -1,4 +1,4 @@
-use std::time::Duration;
+use chrono::Duration;
 
 #[derive(Clone, Debug)]
 /// The policy of a cache.

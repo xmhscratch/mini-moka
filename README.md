@@ -72,18 +72,21 @@ to take a look at the [Quick Cache][quick-cache] crate.
 
 ## Table of Contents
 
-- [Features](#features)
-- [Change Log](#change-log)
-- [Usage](#usage)
-- [Example: Synchronous Cache](#example-synchronous-cache)
-- [Avoiding to clone the value at `get`](#avoiding-to-clone-the-value-at-get)
-- Examples (Part 2)
-    - [Size Aware Eviction](#example-size-aware-eviction)
-    - [Expiration Policies](#example-expiration-policies)
-- [Minimum Supported Rust Versions](#minimum-supported-rust-versions)
-- [Developing Mini Moka](#developing-mini-moka)
-- [Credits](#credits)
-- [License](#license)
+- [Mini Moka](#mini-moka)
+  - [Features](#features)
+  - [Change Log](#change-log)
+  - [Table of Contents](#table-of-contents)
+  - [Usage](#usage)
+  - [Example: Synchronous Cache](#example-synchronous-cache)
+  - [Avoiding to clone the value at `get`](#avoiding-to-clone-the-value-at-get)
+  - [Example: Size Aware Eviction](#example-size-aware-eviction)
+  - [Example: Expiration Policies](#example-expiration-policies)
+    - [A note on expiration policies](#a-note-on-expiration-policies)
+  - [Minimum Supported Rust Versions](#minimum-supported-rust-versions)
+  - [Developing Mini Moka](#developing-mini-moka)
+  - [Credits](#credits)
+    - [Caffeine](#caffeine)
+  - [License](#license)
 
 
 ## Usage
@@ -235,14 +238,14 @@ To set them, use the `CacheBuilder`.
 
 ```rust
 use mini_moka::sync::Cache;
-use std::time::Duration;
+use chrono::Duration;
 
 fn main() {
     let cache = Cache::builder()
         // Time to live (TTL): 30 minutes
-        .time_to_live(Duration::from_secs(30 * 60))
+        .time_to_live(Duration::seconds(30 * 60))
         // Time to idle (TTI):  5 minutes
-        .time_to_idle(Duration::from_secs( 5 * 60))
+        .time_to_idle(Duration::seconds( 5 * 60))
         // Create the cache.
         .build();
 

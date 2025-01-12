@@ -18,8 +18,8 @@ use std::{
     fmt,
     hash::{BuildHasher, Hash},
     sync::Arc,
-    time::Duration,
 };
+use chrono::Duration;
 
 /// A thread-safe concurrent in-memory cache built upon [`dashmap::DashMap`][dashmap].
 ///
@@ -162,13 +162,13 @@ use std::{
 ///
 /// ```rust
 /// use mini_moka::sync::Cache;
-/// use std::time::Duration;
+/// use chrono::Duration;
 ///
 /// let cache = Cache::builder()
 ///     // Time to live (TTL): 30 minutes
-///     .time_to_live(Duration::from_secs(30 * 60))
+///     .time_to_live(Duration::seconds(30 * 60))
 ///     // Time to idle (TTI):  5 minutes
-///     .time_to_idle(Duration::from_secs( 5 * 60))
+///     .time_to_idle(Duration::seconds( 5 * 60))
 ///     // Create the cache.
 ///     .build();
 ///
@@ -594,7 +594,7 @@ where
                 Ok(()) => break,
                 Err(TrySendError::Full(op1)) => {
                     op = op1;
-                    std::thread::sleep(Duration::from_micros(WRITE_RETRY_INTERVAL_MICROS));
+                    std::thread::sleep(Duration::microseconds(WRITE_RETRY_INTERVAL_MICROS).to_std().expect("REASON"));
                 }
                 Err(e @ TrySendError::Disconnected(_)) => return Err(e),
             }
@@ -858,7 +858,7 @@ mod tests {
     fn time_to_live() {
         let mut cache = Cache::builder()
             .max_capacity(100)
-            .time_to_live(Duration::from_secs(10))
+            .time_to_live(Duration::seconds(10))
             .build();
 
         cache.reconfigure_for_testing();
@@ -872,13 +872,13 @@ mod tests {
         cache.insert("a", "alice");
         cache.sync();
 
-        mock.increment(Duration::from_secs(5)); // 5 secs from the start.
+        mock.increment(Duration::seconds(5)); // 5 secs from the start.
         cache.sync();
 
         assert_eq!(cache.get(&"a"), Some("alice"));
         assert!(cache.contains_key(&"a"));
 
-        mock.increment(Duration::from_secs(5)); // 10 secs.
+        mock.increment(Duration::seconds(5)); // 10 secs.
         assert_eq!(cache.get(&"a"), None);
         assert!(!cache.contains_key(&"a"));
 
@@ -892,7 +892,7 @@ mod tests {
 
         assert_eq!(cache.entry_count(), 1);
 
-        mock.increment(Duration::from_secs(5)); // 15 secs.
+        mock.increment(Duration::seconds(5)); // 15 secs.
         cache.sync();
 
         assert_eq!(cache.get(&"b"), Some("bob"));
@@ -902,14 +902,14 @@ mod tests {
         cache.insert("b", "bill");
         cache.sync();
 
-        mock.increment(Duration::from_secs(5)); // 20 secs
+        mock.increment(Duration::seconds(5)); // 20 secs
         cache.sync();
 
         assert_eq!(cache.get(&"b"), Some("bill"));
         assert!(cache.contains_key(&"b"));
         assert_eq!(cache.entry_count(), 1);
 
-        mock.increment(Duration::from_secs(5)); // 25 secs
+        mock.increment(Duration::seconds(5)); // 25 secs
         assert_eq!(cache.get(&"a"), None);
         assert_eq!(cache.get(&"b"), None);
         assert!(!cache.contains_key(&"a"));
@@ -925,7 +925,7 @@ mod tests {
     fn time_to_idle() {
         let mut cache = Cache::builder()
             .max_capacity(100)
-            .time_to_idle(Duration::from_secs(10))
+            .time_to_idle(Duration::seconds(10))
             .build();
 
         cache.reconfigure_for_testing();
@@ -939,12 +939,12 @@ mod tests {
         cache.insert("a", "alice");
         cache.sync();
 
-        mock.increment(Duration::from_secs(5)); // 5 secs from the start.
+        mock.increment(Duration::seconds(5)); // 5 secs from the start.
         cache.sync();
 
         assert_eq!(cache.get(&"a"), Some("alice"));
 
-        mock.increment(Duration::from_secs(5)); // 10 secs.
+        mock.increment(Duration::seconds(5)); // 10 secs.
         cache.sync();
 
         cache.insert("b", "bob");
@@ -952,7 +952,7 @@ mod tests {
 
         assert_eq!(cache.entry_count(), 2);
 
-        mock.increment(Duration::from_secs(2)); // 12 secs.
+        mock.increment(Duration::seconds(2)); // 12 secs.
         cache.sync();
 
         // contains_key does not reset the idle timer for the key.
@@ -962,7 +962,7 @@ mod tests {
 
         assert_eq!(cache.entry_count(), 2);
 
-        mock.increment(Duration::from_secs(3)); // 15 secs.
+        mock.increment(Duration::seconds(3)); // 15 secs.
         assert_eq!(cache.get(&"a"), None);
         assert_eq!(cache.get(&"b"), Some("bob"));
         assert!(!cache.contains_key(&"a"));
@@ -973,7 +973,7 @@ mod tests {
         cache.sync();
         assert_eq!(cache.entry_count(), 1);
 
-        mock.increment(Duration::from_secs(10)); // 25 secs
+        mock.increment(Duration::seconds(10)); // 25 secs
         assert_eq!(cache.get(&"a"), None);
         assert_eq!(cache.get(&"b"), None);
         assert!(!cache.contains_key(&"a"));
@@ -995,7 +995,7 @@ mod tests {
 
         let cache = Cache::builder()
             .max_capacity(100)
-            .time_to_idle(Duration::from_secs(10))
+            .time_to_idle(Duration::seconds(10))
             .build();
 
         for key in 0..NUM_KEYS {
@@ -1047,7 +1047,7 @@ mod tests {
 
         let cache = Cache::builder()
             .max_capacity(2048)
-            .time_to_idle(Duration::from_secs(10))
+            .time_to_idle(Duration::seconds(10))
             .build();
 
         // Initialize the cache.

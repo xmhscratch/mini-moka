@@ -5,8 +5,8 @@ use std::{
     collections::hash_map::RandomState,
     hash::{BuildHasher, Hash},
     marker::PhantomData,
-    time::Duration,
 };
+use chrono::Duration;
 
 /// Builds a [`Cache`][cache-struct] with various configuration knobs.
 ///
@@ -16,15 +16,15 @@ use std::{
 ///
 /// ```rust
 /// use mini_moka::unsync::Cache;
-/// use std::time::Duration;
+/// use chrono::Duration;
 ///
 /// let mut cache = Cache::builder()
 ///     // Max 10,000 elements
 ///     .max_capacity(10_000)
 ///     // Time to live (TTL): 30 minutes
-///     .time_to_live(Duration::from_secs(30 * 60))
+///     .time_to_live(Duration::seconds(30 * 60))
 ///     // Time to idle (TTI):  5 minutes
-///     .time_to_idle(Duration::from_secs( 5 * 60))
+///     .time_to_idle(Duration::seconds( 5 * 60))
 ///     // Create the cache.
 ///     .build();
 ///
@@ -187,9 +187,11 @@ impl<K, V, C> CacheBuilder<K, V, C> {
 mod tests {
     use super::CacheBuilder;
 
-    use std::time::Duration;
+    use chrono::Duration;
+    use wasm_bindgen_test::wasm_bindgen_test;
 
     #[test]
+    #[wasm_bindgen_test]
     fn build_cache() {
         // Cache<char, String>
         let mut cache = CacheBuilder::new(100).build();
@@ -203,38 +205,40 @@ mod tests {
         assert_eq!(cache.get(&'a'), Some(&"Alice"));
 
         let mut cache = CacheBuilder::new(100)
-            .time_to_live(Duration::from_secs(45 * 60))
-            .time_to_idle(Duration::from_secs(15 * 60))
+            .time_to_live(Duration::seconds(45 * 60))
+            .time_to_idle(Duration::seconds(15 * 60))
             .build();
         let policy = cache.policy();
 
         assert_eq!(policy.max_capacity(), Some(100));
-        assert_eq!(policy.time_to_live(), Some(Duration::from_secs(45 * 60)));
-        assert_eq!(policy.time_to_idle(), Some(Duration::from_secs(15 * 60)));
+        assert_eq!(policy.time_to_live(), Some(Duration::seconds(45 * 60)));
+        assert_eq!(policy.time_to_idle(), Some(Duration::seconds(15 * 60)));
 
         cache.insert('a', "Alice");
         assert_eq!(cache.get(&'a'), Some(&"Alice"));
     }
 
     #[test]
+    #[wasm_bindgen_test]
     #[should_panic(expected = "time_to_live is longer than 1000 years")]
     fn build_cache_too_long_ttl() {
-        let thousand_years_secs: u64 = 1000 * 365 * 24 * 3600;
+        let thousand_years_secs: i64 = 1000 * 365 * 24 * 3600;
         let builder: CacheBuilder<char, String, _> = CacheBuilder::new(100);
-        let duration = Duration::from_secs(thousand_years_secs);
+        let duration = Duration::seconds(thousand_years_secs);
         builder
-            .time_to_live(duration + Duration::from_secs(1))
+            .time_to_live(duration + Duration::seconds(1))
             .build();
     }
 
     #[test]
+    #[wasm_bindgen_test]
     #[should_panic(expected = "time_to_idle is longer than 1000 years")]
     fn build_cache_too_long_tti() {
-        let thousand_years_secs: u64 = 1000 * 365 * 24 * 3600;
+        let thousand_years_secs: i64 = 1000 * 365 * 24 * 3600;
         let builder: CacheBuilder<char, String, _> = CacheBuilder::new(100);
-        let duration = Duration::from_secs(thousand_years_secs);
+        let duration = Duration::seconds(thousand_years_secs);
         builder
-            .time_to_idle(duration + Duration::from_secs(1))
+            .time_to_idle(duration + Duration::seconds(1))
             .build();
     }
 }

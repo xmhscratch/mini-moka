@@ -10,8 +10,8 @@ use crate::common::time::{CheckedTimeOps, Instant};
 
 use std::{
     sync::atomic::{AtomicBool, Ordering},
-    time::Duration,
 };
+use chrono::Duration;
 
 pub(crate) trait InnerSync {
     fn sync(&self, max_sync_repeats: usize);
@@ -68,7 +68,7 @@ impl Housekeeper {
     }
 
     fn sync_after(now: Instant) -> Instant {
-        let dur = Duration::from_millis(PERIODICAL_SYNC_INTERVAL_MILLIS);
+        let dur = Duration::milliseconds(PERIODICAL_SYNC_INTERVAL_MILLIS);
         let ts = now.checked_add(dur);
         // Assuming that `now` is current wall clock time, this should never fail at
         // least next millions of years.

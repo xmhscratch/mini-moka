@@ -20,8 +20,8 @@ use std::{
     hash::{BuildHasher, Hash},
     ptr::NonNull,
     rc::Rc,
-    time::Duration,
 };
+use chrono::Duration;
 
 const EVICTION_BATCH_SIZE: usize = 100;
 
@@ -425,8 +425,7 @@ where
             crate::unsync::deques::Deques::unlink_wo(&mut self.deques.write_order, &mut entry);
             self.saturating_sub_from_total_weight(weight as u64);
             Some(entry.value)
-        }
-        else {
+        } else {
             None
         }
     }
@@ -1070,9 +1069,11 @@ mod tests {
     use super::Cache;
     use crate::common::time::Clock;
 
-    use std::time::Duration;
+    use chrono::Duration;
+    use wasm_bindgen_test::wasm_bindgen_test;
 
     #[test]
+    #[wasm_bindgen_test]
     fn basic_single_thread() {
         let mut cache = Cache::new(3);
         cache.enable_frequency_sketch_for_testing();
@@ -1123,6 +1124,7 @@ mod tests {
     }
 
     #[test]
+    #[wasm_bindgen_test]
     fn size_aware_eviction() {
         let weigher = |_k: &&str, v: &(&str, u32)| v.1;
 
@@ -1208,6 +1210,7 @@ mod tests {
     }
 
     #[test]
+    #[wasm_bindgen_test]
     fn invalidate_all() {
         let mut cache = Cache::new(100);
         cache.enable_frequency_sketch_for_testing();
@@ -1237,6 +1240,7 @@ mod tests {
     }
 
     #[test]
+    #[wasm_bindgen_test]
     fn invalidate_entries_if() {
         use std::collections::HashSet;
 
@@ -1250,7 +1254,7 @@ mod tests {
         cache.insert(1, "bob");
         cache.insert(2, "alex");
 
-        mock.increment(Duration::from_secs(5)); // 5 secs from the start.
+        mock.increment(Duration::seconds(5)); // 5 secs from the start.
 
         assert_eq!(cache.get(&0), Some(&"alice"));
         assert_eq!(cache.get(&1), Some(&"bob"));
@@ -1262,7 +1266,7 @@ mod tests {
         let names = ["alice", "alex"].iter().cloned().collect::<HashSet<_>>();
         cache.invalidate_entries_if(move |_k, &v| names.contains(v));
 
-        mock.increment(Duration::from_secs(5)); // 10 secs from the start.
+        mock.increment(Duration::seconds(5)); // 10 secs from the start.
 
         cache.insert(3, "alice");
 
@@ -1279,7 +1283,7 @@ mod tests {
 
         assert_eq!(cache.cache.len(), 2);
 
-        mock.increment(Duration::from_secs(5)); // 15 secs from the start.
+        mock.increment(Duration::seconds(5)); // 15 secs from the start.
 
         cache.invalidate_entries_if(|_k, &v| v == "alice");
         cache.invalidate_entries_if(|_k, &v| v == "bob");
@@ -1294,10 +1298,11 @@ mod tests {
     }
 
     #[test]
+    #[wasm_bindgen_test]
     fn time_to_live() {
         let mut cache = Cache::builder()
             .max_capacity(100)
-            .time_to_live(Duration::from_secs(10))
+            .time_to_live(Duration::seconds(10))
             .build();
         cache.enable_frequency_sketch_for_testing();
 
@@ -1306,12 +1311,12 @@ mod tests {
 
         cache.insert("a", "alice");
 
-        mock.increment(Duration::from_secs(5)); // 5 secs from the start.
+        mock.increment(Duration::seconds(5)); // 5 secs from the start.
 
         assert_eq!(cache.get(&"a"), Some(&"alice"));
         assert!(cache.contains_key(&"a"));
 
-        mock.increment(Duration::from_secs(5)); // 10 secs.
+        mock.increment(Duration::seconds(5)); // 10 secs.
 
         assert_eq!(cache.get(&"a"), None);
         assert!(!cache.contains_key(&"a"));
@@ -1322,7 +1327,7 @@ mod tests {
 
         assert_eq!(cache.cache.len(), 1);
 
-        mock.increment(Duration::from_secs(5)); // 15 secs.
+        mock.increment(Duration::seconds(5)); // 15 secs.
 
         assert_eq!(cache.get(&"b"), Some(&"bob"));
         assert!(cache.contains_key(&"b"));
@@ -1330,13 +1335,13 @@ mod tests {
 
         cache.insert("b", "bill");
 
-        mock.increment(Duration::from_secs(5)); // 20 secs
+        mock.increment(Duration::seconds(5)); // 20 secs
 
         assert_eq!(cache.get(&"b"), Some(&"bill"));
         assert!(cache.contains_key(&"b"));
         assert_eq!(cache.cache.len(), 1);
 
-        mock.increment(Duration::from_secs(5)); // 25 secs
+        mock.increment(Duration::seconds(5)); // 25 secs
 
         assert_eq!(cache.get(&"a"), None);
         assert_eq!(cache.get(&"b"), None);
@@ -1347,10 +1352,11 @@ mod tests {
     }
 
     #[test]
+    #[wasm_bindgen_test]
     fn time_to_idle() {
         let mut cache = Cache::builder()
             .max_capacity(100)
-            .time_to_idle(Duration::from_secs(10))
+            .time_to_idle(Duration::seconds(10))
             .build();
         cache.enable_frequency_sketch_for_testing();
 
@@ -1359,17 +1365,17 @@ mod tests {
 
         cache.insert("a", "alice");
 
-        mock.increment(Duration::from_secs(5)); // 5 secs from the start.
+        mock.increment(Duration::seconds(5)); // 5 secs from the start.
 
         assert_eq!(cache.get(&"a"), Some(&"alice"));
 
-        mock.increment(Duration::from_secs(5)); // 10 secs.
+        mock.increment(Duration::seconds(5)); // 10 secs.
 
         cache.insert("b", "bob");
 
         assert_eq!(cache.cache.len(), 2);
 
-        mock.increment(Duration::from_secs(2)); // 12 secs.
+        mock.increment(Duration::seconds(2)); // 12 secs.
 
         // contains_key does not reset the idle timer for the key.
         assert!(cache.contains_key(&"a"));
@@ -1377,7 +1383,7 @@ mod tests {
 
         assert_eq!(cache.cache.len(), 2);
 
-        mock.increment(Duration::from_secs(3)); // 15 secs.
+        mock.increment(Duration::seconds(3)); // 15 secs.
 
         assert_eq!(cache.get(&"a"), None);
         assert_eq!(cache.get(&"b"), Some(&"bob"));
@@ -1386,7 +1392,7 @@ mod tests {
         assert_eq!(cache.iter().count(), 1);
         assert_eq!(cache.cache.len(), 1);
 
-        mock.increment(Duration::from_secs(10)); // 25 secs
+        mock.increment(Duration::seconds(10)); // 25 secs
 
         assert_eq!(cache.get(&"a"), None);
         assert_eq!(cache.get(&"b"), None);
@@ -1398,6 +1404,7 @@ mod tests {
 
     #[cfg_attr(target_pointer_width = "16", ignore)]
     #[test]
+    #[wasm_bindgen_test]
     fn test_skt_capacity_will_not_overflow() {
         // power of two
         let pot = |exp| 2u64.pow(exp);
@@ -1443,6 +1450,7 @@ mod tests {
     }
 
     #[test]
+    #[wasm_bindgen_test]
     fn test_debug_format() {
         let mut cache = Cache::new(10);
         cache.insert('a', "alice");

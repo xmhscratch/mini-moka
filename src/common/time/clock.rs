@@ -1,12 +1,7 @@
-use std::{
-    sync::{Arc, RwLock},
-    time::Instant as StdInstant,
-};
+use std::sync::{Arc, RwLock};
+use chrono::{DateTime,Utc};
 
-#[cfg(test)]
-use std::time::Duration;
-
-pub(crate) type Instant = StdInstant;
+pub(crate) type Instant = DateTime<Utc>;
 
 pub(crate) struct Clock {
     mock: Option<Arc<Mock>>,
@@ -26,7 +21,7 @@ impl Clock {
         if let Some(mock) = &self.mock {
             *mock.now.read().expect("lock poisoned")
         } else {
-            StdInstant::now()
+            Utc::now()
         }
     }
 }
@@ -38,7 +33,7 @@ pub(crate) struct Mock {
 impl Default for Mock {
     fn default() -> Self {
         Self {
-            now: RwLock::new(StdInstant::now()),
+            now: RwLock::new(Utc::now()),
         }
     }
 }
