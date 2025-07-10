@@ -16,7 +16,6 @@ exclude = [".circleci", ".devcontainer", ".github", ".gitpod.yml", ".vscode"]
 
 [features]
 default = ["sync"]
-wasmbind = ["dep:chrono"]
 sync = ["dashmap"]
 
 [dependencies]
@@ -24,7 +23,7 @@ crossbeam-channel = "0.5.5"
 crossbeam-utils = "0.8"
 smallvec = "1.8"
 tagptr = "0.2"
-chrono = { version = "0.4", optional = true, features = ["wasmbind"]}
+chrono = { version = "0.4", features = ["wasmbind"]}
 
 # Opt-out serde and stable_deref_trait features
 # https://github.com/Manishearth/triomphe/pull/5
